@@ -1,0 +1,51 @@
+upstream fastapi {
+    server fastapi:8000;
+}
+
+server {
+    listen 443 ssl;
+    server_name chatunderdog.ddns.net ;
+
+    ssl_certificate /etc/letsencrypt/live/chatunderdog.ddns.net/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/chatunderdog.ddns.net/privkey.pem;
+
+    client_max_body_size 1024M;
+    proxy_read_timeout 600;
+    proxy_connect_timeout 600;
+    proxy_send_timeout 600;
+    
+    location / {
+         proxy_pass http://fastapi;
+         proxy_http_version 1.1;
+         proxy_set_header X-Real-IP $remote_addr;
+         proxy_set_header Upgrade $http_upgrade;
+         proxy_set_header Connection "upgrade";
+         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+         proxy_set_header Host $http_host;
+         proxy_set_header User-Agent $http_user_agent;
+         proxy_redirect off;
+    }
+
+
+    # Other configurations such as root, index, location, etc.
+}
+
+server {
+    listen 80;
+    client_max_body_size 1024M;
+    proxy_read_timeout 600;
+    proxy_connect_timeout 600;
+    proxy_send_timeout 600;
+    location / {
+         proxy_pass http://fastapi;
+         proxy_http_version 1.1;
+         proxy_set_header X-Real-IP $remote_addr;
+         proxy_set_header Upgrade $http_upgrade;
+         proxy_set_header Connection "upgrade";
+         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+         proxy_set_header Host $http_host;
+         proxy_set_header User-Agent $http_user_agent;
+         proxy_redirect off;
+    }
+
+}

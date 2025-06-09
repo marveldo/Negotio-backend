@@ -1,0 +1,83 @@
+version: '3.11'
+services:
+  fastapi: 
+    volumes:
+      - .:/app
+      - ./static:/app/static
+    env_file:
+      - .env
+    build:
+      context: .
+    entrypoint: ["./run.sh"]
+    expose:
+     - 8000
+    depends_on:
+     - postgres
+     - redis
+
+  nginx:
+    build:
+      context: ./nginx
+      args:
+        CONFIG_FILE: nginx.dev.conf.template
+    ports:
+      - "8000:80"
+    depends_on: 
+      - fastapi
+      
+  worker :
+     build:
+       context : .
+     command: celery -A app.celery.conf.celery worker --loglevel=info
+     volumes:
+      - .:/app
+     depends_on :
+      - fastapi 
+      - redis
+  flower :
+     build : 
+       context : .
+     command : celery -A app.celery.conf.celery flower --conf=app/celery/flowerconfig.py
+     volumes:
+      - .:/app
+     depends_on :
+      - fastapi
+      - redis
+      - worker
+     ports :
+      - "5555:5555"
+  redis:
+    image: redis:7.2.3-alpine
+    restart: always
+    ports:
+      -  "${REDIS_PORT}:6379"
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+
+  postgres:
+    image: postgres
+    expose:
+      - 5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${DATABASE_NAME}
+      - POSTGRES_USER=${DATABASE_USERNAME}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${DEFAULT_PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${DEFAULT_PGADMIN_PASSWORD}
+    ports:
+      - "8080:80"  # Access pgAdmin externally
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
+  redis_data:

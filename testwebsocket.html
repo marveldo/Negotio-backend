@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form id="chatbar">
+        <input type="number" name="number_1"  placeholder="1st number"/>
+        <input type="number" name="number_2"  placeholder="2nd number"/>
+        
+
+        <button>Submit</button>
+    </form>
+
+    <form id="chatbar2">
+        <input type="text" name="chat"  placeholder="chat"/>
+    
+        
+
+        <button>Submit</button>
+    </form>
+    
+
+    <h1>Messages In this Channel</h1>
+
+    <div id="Chatbox">
+
+    </div>
+</body>
+<script>
+    const inputbar = document.getElementById('chatbar')
+    const chatbox = document.getElementById('Chatbox')
+    const inputbar2 = document.getElementById('chatbar2')
+    let task_id = ''
+    
+    const websocket1 = new WebSocket(`ws://localhost:8000/ws/users/test/`)
+    const websocket = new WebSocket(`ws://localhost:8000/ws/users/task-result/`)
+        websocket.onopen = (e) => {
+        console.log(e)
+    }
+    websocket.onmessage = (e) => {
+        if(JSON.parse(e.data).type === 'task_update'){
+            let message = JSON.parse(e.data)
+            if(message.task_id === task_id){
+              chatbox.innerHTML += `<p>${message.result}</p>`
+            }
+
+            
+        }
+       
+    }
+  
+   websocket1.onmessage = (e) => {
+    console.log(e)
+   }
+    inputbar.onsubmit = async(e) => {
+        e.preventDefault()
+        let number_1 = e.target.elements['number_1'].value
+        let number_2 = e.target.elements['number_2'].value
+
+         
+        const response = await fetch(`http://localhost:8000/api/v1/users/add/`,
+            {
+                method : 'POST',
+                headers : {
+                    'Content-Type' : 'application/json'
+                },
+                body : JSON.stringify({number_1 : number_1 , number_2 : number_2})
+            }
+        )
+        const data = await response.json()
+        task_id = data.task_id
+
+      
+    }
+    inputbar2.onsubmit = (e) => {
+        e.preventDefault()
+        message = e.target.elements['chat'].value
+        websocket1.send(JSON.stringify(message))
+    }
+    
+</script>
+</html>

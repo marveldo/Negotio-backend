@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form id="form_for_bot">
+        <input placeholder="Input a question for the bot" name="botinput">
+        <button>Submit</button>
+    </form>
+    <img src="http://localhost:8000/static/uploads/R.jfif" alt="avatar" />
+
+    <div id="Chatbox"></div>
+</body>
+<script>
+    const promptform = document.getElementById('form_for_bot')
+    const chatbox = document.getElementById('Chatbox')
+    let room_id = '06806f06-9983-76c8-8000-19288376f278'
+    const socket = new WebSocket(`ws://localhost:8000/ws/chat/${room_id}/`)
+
+    socket.onopen = (e) => {
+        console.log('Connected')
+    }
+    socket.onmessage = (e) => {
+        let data = JSON.parse(e.data)
+        let message = data.message
+        console.log(message)
+        if(data.status === 'success'){
+        chatbox.innerHTML += `<p style='margin-top : 30px'>${message}</p>`
+        }
+        else {
+            console.log(data)
+        }
+    }
+
+    promptform.onsubmit = async(e) => {
+        e.preventDefault() 
+        let message = e.target.elements['botinput'].value
+
+        const response = await fetch(`http://localhost:8000/api/v1/chat/${room_id}`,
+            {
+                method : 'POST',
+                headers : {
+                    'Content-Type' : 'application/json'
+                },
+                body : JSON.stringify({message : message})
+            }
+        )
+        
+        let data = await response.json()
+        chatbox.innerHTML += `<p style='margin-top : 30px'>${message}</p>`
+
+    }
+
+</script>
+</html>
