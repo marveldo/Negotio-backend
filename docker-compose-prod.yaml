@@ -27,6 +27,8 @@ services:
       - "443:443"
     depends_on: 
       - fastapi
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro
       
   worker :
      build:
