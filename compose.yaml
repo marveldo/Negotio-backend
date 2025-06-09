@@ -24,7 +24,7 @@ services:
       - "8000:80"
     depends_on: 
       - fastapi
-      
+
   worker :
      build:
        context : .
@@ -34,18 +34,18 @@ services:
      depends_on :
       - fastapi 
       - redis
-  flower :
-     build : 
-       context : .
-     command : celery -A app.celery.conf.celery flower --conf=app/celery/flowerconfig.py
-     volumes:
-      - .:/app
-     depends_on :
-      - fastapi
-      - redis
-      - worker
-     ports :
-      - "5555:5555"
+  # flower :
+  #    build : 
+  #      context : .
+  #    command : celery -A app.celery.conf.celery flower --conf=app/celery/flowerconfig.py
+  #    volumes:
+  #     - .:/app
+  #    depends_on :
+  #     - fastapi
+  #     - redis
+  #     - worker
+  #    ports :
+  #     - "5555:5555"
   redis:
     image: redis:7.2.3-alpine
     restart: always
@@ -68,15 +68,15 @@ services:
       - POSTGRES_USER=${DATABASE_USERNAME}
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
 
-  pgadmin:
-    image: dpage/pgadmin4
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${DEFAULT_PGADMIN_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${DEFAULT_PGADMIN_PASSWORD}
-    ports:
-      - "8080:80"  # Access pgAdmin externally
-    depends_on:
-      - postgres
+  # pgadmin:
+  #   image: dpage/pgadmin4
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: ${DEFAULT_PGADMIN_EMAIL}
+  #     PGADMIN_DEFAULT_PASSWORD: ${DEFAULT_PGADMIN_PASSWORD}
+  #   ports:
+  #     - "8080:80"  # Access pgAdmin externally
+  #   depends_on:
+  #     - postgres
 
 volumes:
   postgres_data:
